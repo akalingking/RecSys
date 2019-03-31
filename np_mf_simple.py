@@ -38,7 +38,7 @@ def main():
     """ Find PQ sub matrices """
     R = ratings.values
 
-    """ Randomly initilize P & Q matrices using n latent factors """
+    """ Randomly initialize P & Q matrices with n latent factors """
     n_factors = 10
     P = np.random.normal(0, .1, (n_users, n_factors))
     Q = np.random.normal(0, .1, (n_factors, n_items))
@@ -59,7 +59,7 @@ def main():
     rmse = np.sqrt(mse)
     print ("RMSE: %.5f" % (rmse))
 
-    """ Measure precision and recall for recommended items for each user """
+    """ Measure precision and recall of recommended items for each user """
     k = 100
     precisions, recalls = [], []
     for i in xrange(n_users):
