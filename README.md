@@ -4,11 +4,9 @@
 Download dataset from https://grouplens.org/datasets/movielens/100k/
 
 ## Features
-[1] Various algorithm implementations used for Recommender Systems 
+[1] Various algorithm implementations used for recommender systems
 
-[2] Uses native components only.
-
-## Requirements:
+## Requirements
 [1] Numpy
 [2] Scipy
 [3] Tensorflow
