@@ -6,6 +6,8 @@ Download dataset from https://grouplens.org/datasets/movielens/100k/
 ## Features
 [1] Various algorithm implementations used for recommender systems
 
+[1.a] Matrix Factorization
+
 ## Requirements
 [1] Numpy
 
@@ -16,10 +18,10 @@ Download dataset from https://grouplens.org/datasets/movielens/100k/
 ## References
 [1] https://en.wikipedia.org/wiki/Matrix_factorization_(recommender_systems)
 
-[2] https://en.wikipedia.org/wiki/Matrix_regularization
+[2] https://en.wikipedia.org/wiki/Precision_and_recall
 
-[3] https://en.wikipedia.org/wiki/Precision_and_recall
+[3] https://www.netflixprize.com/assets/GrandPrize2009_BPC_BigChaos.pdf
 
-[4] https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf
+[4] http://www.cs.cmu.edu/~ggordon/singh-gordon-unified-factorization-ecml.pdf
 
-[5] http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.125.8971&rep=rep1&type=pdf
+[5] https://papers.nips.cc/paper/1861-algorithms-for-non-negative-matrix-factorization.pdf
