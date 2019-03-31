@@ -8,7 +8,9 @@ Download dataset from https://grouplens.org/datasets/movielens/100k/
 
 ## Requirements
 [1] Numpy
+
 [2] Scipy
+
 [3] Tensorflow
 
 ## References
