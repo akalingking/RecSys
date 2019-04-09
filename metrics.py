@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" @brief  Precision and Recall from
-            https://en.wikipedia.org/wiki/Precision_and_recall 
-    @author <ariel kalingking> akalingking@gmail.com
-    """
+""" @brief  Precision and Recall from https://en.wikipedia.org/wiki/Precision_and_recall
+    @author <ariel kalingking> akalingking@gmail.com """
 import numpy as np
 
 def recall_at_k (data, predicted, k=0, debug_on=False):
@@ -17,11 +15,11 @@ def recall_at_k (data, predicted, k=0, debug_on=False):
     positive = data[:k]
     predicted_ = predicted[:k]
 
-    """ True Positive: correctly classified """
+    """ True Positives """
     tp = np.intersect1d(positive, predicted_)
     TP = len(tp)
 
-    """ False Negative: classified as negative but is positive """
+    """ False Negatives """
     FN = len(data) - TP
 
     recall = (TP * 1.0) / (TP + (FN if FN > 0 else 0)) if TP > 0 else 0
@@ -43,11 +41,11 @@ def precision_at_k (data, predicted, k=0, debug_on=False):
     positive = data[:k]
     predicted_ = predicted[:k]
 
-    """ True Positive: correctly classified """
+    """ True Positives """
     tp = np.intersect1d(positive, predicted_)
     TP = len(tp)
 
-    """ False Positive: classified as positive but is negative """
+    """ False Positives """
     FP = len(predicted_) - TP
 
     precision = (TP * 1.0) / (TP + FP)

@@ -4,16 +4,22 @@
 Download dataset from https://grouplens.org/datasets/movielens/100k/
 
 ## Features
-[1] Various algorithm implementations used for recommender systems
+[1] Algorithms used for recommendation systems
 
-[1.a] Matrix Factorization
+    [a] Matrix Factorization
+
+    [b] Singular Value Decomposition
+
+    [c] Principal Component Analysis
 
 ## Requirements
 [1] Numpy
 
 [2] Scipy
 
-[3] Tensorflow
+[3] Pandas
+
+[4] Tensorflow
 
 ## References
 [1] https://en.wikipedia.org/wiki/Matrix_factorization_(recommender_systems)

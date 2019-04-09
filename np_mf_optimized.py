@@ -47,7 +47,7 @@ def main():
     P = np.random.normal(0, .1, (n_users, n_factors))
     Q = np.random.normal(0, .1, (n_factors, n_items))
 
-    print("Start gradient descent...")
+    print("Start optimization...")
     verbosity = 1
     R_mask = R.copy()
     R_mask[R_mask != 0.000000] = 1
@@ -59,10 +59,10 @@ def main():
             for i in xrange(n_items):
                 error = R[u, i] - np.matmul(P[u], Q[:,i])
                 # Update process:
-                # P_i = P_i + learning_rate * derivative{ loss_fn }
+                # P_i = P_i - learning_rate * error * derivative{ loss_fn }
                 # where: loss_fn = (R - PQ)ˆ2 + lambda (|P|^2 + |Q|ˆ2)
-                P[u] += learning_rate * ((error * 2 * Q[:,i]) + (lambda_ * 2 * np.abs(Q[:,i])))
-                Q[:,i] += learning_rate * ((error * 2 * P[u]) + (lambda_ * 2 * np.abs(P[u])))
+                P[u] = P[u] - learning_rate * ((error * -2 * Q[:, i]) + (lambda_ * 2 * np.abs(Q[:,i])))
+                Q[:,i] = Q[:, i] - learning_rate * ((error * -2 * P[u]) + (lambda_ * 2 * np.abs(P[u])))
 
         np.matmul(P, Q, out=R_hat)
 
