@@ -1,14 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" @brief Recommendation algorithm using optimized Matrix Factorization in TensorFlow
-    @author: <ariel kalingking> akalingking@gmail.com """
+""" @brief  Recommendation algorithm using optimized Matrix Factorization in TensorFlow
+    @author <ariel kalingking> akalingking@gmail.com """
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from metrics import precision_at_k, recall_at_k
 
+
 def main():
     session = tf.Session()
+
     normalized_on = True
 
     """ load dataset """
@@ -73,7 +75,6 @@ def main():
 
     result_flatten = tf.reshape(result, [-1])
     assert (result_flatten.shape[0] == n_users * n_items)
-    # print ("flatten shape",  result_flatten.shape)
 
     R = tf.gather(result_flatten, user_indices[:-1] * n_items + item_indices)
     assert (R.shape[0] == n_users*n_items)

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" @brief Recommendation algorithm using Matrix Factorization in TensorFlow
-    @author: <ariel kalingking> akalingking@gmail.com """
+""" @brief  Recommendation algorithm using Matrix Factorization in TensorFlow
+    @author <ariel kalingking> akalingking@gmail.com """
 import numpy as np
 import pandas as pd
 import tensorflow as tf
