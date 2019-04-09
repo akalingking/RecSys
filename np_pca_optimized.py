@@ -77,7 +77,7 @@ def main():
         lambda_ = .0001
         verbosity = 1
 
-        """ We only modify the weigths matrix """
+        """ We only modify the weight matrix """
         for epoch in xrange(epochs):
             for u in xrange(n_users):
                 for i in xrange(n_items):
