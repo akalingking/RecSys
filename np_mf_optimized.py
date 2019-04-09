@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" @brief Matrix factorization with opptimization using gradient descent
+""" @brief Matrix factorization with optimization using gradient descent
     @author: <ariel kalingking> akalingking@gmail.com """
 import time
 import numpy as np
