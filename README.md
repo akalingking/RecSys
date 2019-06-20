@@ -6,11 +6,13 @@ Download dataset from https://grouplens.org/datasets/movielens/100k/
 ## Features
 [1] Algorithms used for recommendation systems
 
-    [a] Matrix Factorization
+    [a] Singular Value Decomposition
 
-    [b] Singular Value Decomposition
-
-    [c] Principal Component Analysis
+    [b] Principal Component Analysis
+    
+    [c] Matrix Factorization
+    
+    [d] *Extreme Deep Matrix Factorization
 
 ## Requirements
 [1] Numpy
