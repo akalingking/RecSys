@@ -12,7 +12,7 @@ Download dataset from https://grouplens.org/datasets/movielens/100k/
     
     [c] Matrix Factorization
     
-    [d] *Extreme Deep Matrix Factorization
+    [d] *eXtreme Deep Factorization Machine 
 
 ## Requirements
 [1] Numpy
