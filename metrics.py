@@ -1,55 +1,56 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" @brief  Precision and Recall from https://en.wikipedia.org/wiki/Precision_and_recall
+""" @brief  Precision and Recall
+    @ref    https://en.wikipedia.org/wiki/Precision_and_recall
+            Modfied from https://github.com/lyst/lightfm
     @author <ariel kalingking> akalingking@gmail.com """
 import numpy as np
+import pandas as pd
+from scipy import sparse
 
-def recall_at_k (data, predicted, k=0, debug_on=False):
-    assert (isinstance(data, np.ndarray))
-    assert (isinstance(predicted, np.ndarray))
-    if debug_on:
-        print ("recall_at_k data:%d predicted:%d k:%d" % (len(data), len(predicted), k))
+__all__ = ["precision_at_k", "recall_at_k"]
 
-    k = k if k>0 else len(predicted)
+def _rank_matrix(mat):
+    assert isinstance(mat, (np.ndarray,))
+    mat_ = pd.DataFrame(data=mat)
+    mat_ = mat_.rank(axis=1, ascending=False)
+    return mat_.values
 
-    positive = data[:k]
-    predicted_ = predicted[:k]
 
-    """ True Positives """
-    tp = np.intersect1d(positive, predicted_)
-    TP = len(tp)
+def precision_at_k(y_true, y_hat, k=10, preserve_rows=False, is_y_hat_rank=False):
+    assert isinstance(y_true, (sparse.coo_matrix, sparse.csr_matrix))
+    assert isinstance(y_hat, (np.ndarray,))
 
-    """ False Negatives """
-    FN = len(data) - TP
+    if not is_y_hat_rank:
+        y_hat = _rank_matrix(y_hat)
 
-    recall = (TP * 1.0) / (TP + (FN if FN > 0 else 0)) if TP > 0 else 0
+    relevant = y_true > 0
+    ranks = sparse.csr_matrix(y_hat * relevant.A)
+    ranks.data = np.less(ranks.data, (k + 1), ranks.data)
 
-    if debug_on:
-        print("recall_at_k TP:%d FN:%d recall:%.5f" % (TP, FN, recall))
+    precision = np.squeeze(np.array(ranks.sum(axis=1))).astype(float) / k
 
-    return recall
+    if not preserve_rows:
+        precision = precision[relevant.getnnz(axis=1) > 0]
 
-def precision_at_k (data, predicted, k=0, debug_on=False):
-    assert (isinstance(data, np.ndarray))
-    assert (isinstance(predicted, np.ndarray))
+    return precision.mean()
 
-    if debug_on:
-        print ("precision_at_k data:%d predicted:%d k:%d" % (len(data), len(predicted), k))
 
-    k = k if k > 0 else len(predicted)
+def recall_at_k(y_true, y_hat, k=10, preserve_rows=False, is_y_hat_rank=False):
+    assert isinstance(y_true, (sparse.coo_matrix, sparse.csr_matrix))
+    assert isinstance(y_hat, (np.ndarray,))
 
-    positive = data[:k]
-    predicted_ = predicted[:k]
+    if not is_y_hat_rank:
+        y_hat = _rank_matrix(y_hat)
 
-    """ True Positives """
-    tp = np.intersect1d(positive, predicted_)
-    TP = len(tp)
+    relevant = y_true > 0
+    ranks = sparse.csr_matrix(y_hat * relevant.A)
+    ranks.data = np.less(ranks.data, (k + 1), ranks.data)
+    retrieved = np.squeeze(relevant.getnnz(axis=1))
+    hit = np.squeeze(np.array(ranks.sum(axis=1)))
 
-    """ False Positives """
-    FP = len(predicted_) - TP
+    if not preserve_rows:
+        hit = hit[relevant.getnnz(axis=1) > 0]
+        retrieved = retrieved[relevant.getnnz(axis=1) > 0]
 
-    precision = (TP * 1.0) / (TP + FP)
-    if debug_on:
-        print("precision_at_k TP:%d FP:%d precision:%.5f " % (TP, FP, precision))
-
-    return precision
+    return (hit.astype(float) / retrieved.astype(float)).mean()

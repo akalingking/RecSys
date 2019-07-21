@@ -1,13 +1,19 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" @brief Matrix factorization with optimization using gradient descent
-    @author: <ariel kalingking> akalingking@gmail.com """
-import time
+""" @brief  Matrix factorization with optimization using just numpy and gradient descent
+    @author <ariel kalingking> akalingking@gmail.com """
+import time, sys
 import numpy as np
 import pandas as pd
-from metrics import precision_at_k, recall_at_k
+import metrics2
+if sys.version_info[0] < 3:
+    range = xrange
+
+from scipy import sparse
 
 def main():
+    print("\nStarting '%s'" % sys.argv[0])
+
     np.random.seed(8000)
 
     """ Load dataset """
@@ -19,25 +25,20 @@ def main():
     ratings = pd.pivot_table(data, values="rating", index="userid", columns="itemid")
     ratings.fillna(0, inplace=True)
 
-    train_size = 0.5
-    train_row_size = int(len(ratings.index) * train_size)
-    train_col_size = int(len(ratings.columns) * train_size)
-    ratings = ratings.loc[:train_row_size, :train_col_size]
-    user_train = np.unique(ratings.index.values)
-    item_train = np.unique(ratings.columns.values)
-    n_users = len(user_train)
-    n_items = len(item_train)
-    print ("n_users:%d" % n_users)
-    print ("n_items:%d" % n_items)
+    users = np.unique(ratings.index.values)
+    items = np.unique(ratings.columns.values)
+    n_users = len(users)
+    n_items = len(items)
+    print ("n_users:%d n_items=%d" % (n_users, n_items))
 
     """ Take the mean only from non-zero elements """
     temp = ratings.copy()
     rating_mean = temp.replace(0, np.NaN).mean().mean()
     rating_mean = 3.5 if rating_mean > 3.5 else rating_mean
-    print("Rating mean: %.2f" % rating_mean)
+    print("Rating mean: %.3f" % rating_mean)
 
     """ Optimization parameters """
-    epoch = 50
+    epoch = 10
     n_factors = 10
     learning_rate = .001
     lambda_ = .0001
@@ -47,16 +48,16 @@ def main():
     P = np.random.normal(0, .1, (n_users, n_factors))
     Q = np.random.normal(0, .1, (n_factors, n_items))
 
-    print("Start optimization...")
+    print ("Start gradient descent...")
     verbosity = 1
     R_mask = R.copy()
     R_mask[R_mask != 0.000000] = 1
     R_hat = np.zeros(np.shape(R))
     R_hat_mask = np.zeros(np.shape(R))
     start_t = time.time()
-    for iteration in xrange(epoch):
-        for u in xrange(n_users):
-            for i in xrange(n_items):
+    for iteration in range(epoch):
+        for u in range(n_users):
+            for i in range(n_items):
                 error = R[u, i] - np.matmul(P[u], Q[:,i])
                 # Update process:
                 # P_i = P_i - learning_rate * error * derivative{ loss_fn }
@@ -74,31 +75,19 @@ def main():
         diff_square = np.square(diff)
         mse = np.divide(diff_square.sum(), n_users*n_items)
         rmse = np.sqrt(mse)
-        if iteration%verbosity == 0 or iteration == (epoch-1):
+        if iteration % verbosity == 0 or iteration == (epoch-1):
             print ("Epoch %d: RMSE: %.5f" % (iteration, rmse))
 
     print ("Optimization time: %.6f seconds" % (time.time()- start_t))
     
     """ Metrics of recommended items for each user """
     k = 100
-    precisions, recalls = [], []
-    for i in xrange(n_users):
-        R_u = ratings.values[i, :]
-        R_u_k = R_u[:k]
-        R_u_k_non_zero = R_u_k[R_u_k > 0]
-        if len(R_u_k_non_zero) > 0:
-            # print ("User:%d mean rating:%.5f" % (i+1, np.mean(R_u_k_non_zero)))
-            R_u_relevant = np.where(R_u_k > rating_mean)[0]
-            R_u_hat = R_hat[i, :]
-            R_u_hat_sorted = np.argsort(-R_u_hat)
-            assert (R_u.shape == R_u_hat.shape)
-            precision = precision_at_k(R_u_relevant, R_u_hat_sorted[:k], k=k)
-            precisions.append(precision)
-            recall = recall_at_k(R_u_relevant, R_u_hat_sorted[:k], k=k)
-            recalls.append(recall)
-            #print ("user:%d precision:%.6f recall:%.6f" % (i+1, precision, recall))
+    precision = metrics2.precision_at_k(sparse.csr_matrix(ratings.values), R_hat, k=100)
+    recall = metrics2.recall_at_k(sparse.csr_matrix(ratings.values), R_hat, k=100)
+    print("Precision:%.3f%% Recall:%.3f%%" % (precision*100, recall*100))
 
-    print ("Precision:%.3f Recall:%.6f" % (np.mean(precisions), np.mean(recalls)))
+    print("\nStopping '%s'" % sys.argv[0])
+
 
 if __name__=="__main__":
     main()

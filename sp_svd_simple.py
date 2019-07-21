@@ -1,18 +1,24 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" @brief Recommendation algorithm using Singular Value Decomposition (SVD)
-    @author: <ariel kalingking> akalingking@gmail.com """
+""" @brief  Recommendation algorithm using Singular Value Decomposition (SVD)
+    @author <ariel kalingking> akalingking@gmail.com """
+import sys
 import numpy as np
 import pandas as pd
-from metrics import precision_at_k, recall_at_k
+import metrics2
 import scipy.sparse.linalg as linalg
+from scipy import sparse
+if sys.version_info[0] < 3:
+    range = xrange
 
 def main():
+    print("\nStarting '%s'" % sys.argv[0])
+
     np.random.seed(8000)
 
     k = 100
 
-    normalization_enabled = True
+    normalization_enabled = False
 
     """ Load dataset """
     datafile = "./data/ml-100k/u.data"
@@ -23,71 +29,63 @@ def main():
     ratings = pd.pivot_table(data, values="rating", index="userid", columns="itemid")
     ratings.fillna(0, inplace=True)
 
-    train_size = 0.7
-    train_row_size = int(len(ratings.index) * train_size)
-    train_col_size = int(len(ratings.columns) * train_size)
-    ratings_train = ratings.loc[:train_row_size, :train_col_size]
-    user_train = np.unique(ratings_train.index.values)
-    item_train = np.unique(ratings_train.columns.values)
-    n_users = len(user_train)
-    n_items = len(item_train)
-    print ("n_users:", n_users)
-    print ("n_items", n_items)
+    # train_size = 0.7
+    # train_row_size = int(len(ratings.index) * train_size)
+    # train_col_size = int(len(ratings.columns) * train_size)
+    # ratings = ratings.loc[:train_row_size, :train_col_size]
+    users = np.unique(ratings.index.values)
+    items = np.unique(ratings.columns.values)
+    n_users = len(users)
+    n_items = len(items)
+    assert (np.max(users) == len(users))
+    assert (np.max(items) == len(items))
+    print ("n_users=%d n_items=%d" % (n_users, n_items))
 
     """ Take the mean only from non-zero elements """
-    temp = ratings_train.copy()
+    temp = ratings.copy()
     rating_mean = temp.copy().replace(0, np.NaN).mean().mean()
     rating_mean = 3.5 if rating_mean > 3.5 else rating_mean
     print("Rating mean: %.2f" % rating_mean)
 
     if normalization_enabled:
-        temp = ratings_train.copy()
+        temp = ratings.copy()
         ratings_norm = np.subtract(temp, rating_mean, where=temp!=0)
-        ratings = ratings_norm.values
+        R = ratings_norm.values
     else:
-        ratings = ratings_train.values
+        R = ratings.values
 
-    U, S, V = linalg.svds(ratings, k=5)
+    U, S, V = linalg.svds(R, k=k)
     # print ("U: ", np.shape(U))
     # print ("S: ", np.shape(S))
     # print ("V: ", np.shape(V))
     sigma = np.diag(S)
     # print ("Sigma: ", np.shape(sigma))
-    R = np.dot(np.dot(U, sigma), V)
 
-    R_mask = R.copy()
-    R_mask[R_mask != 0.000000] = 1
-    R_hat = np.zeros(np.shape(R))
+    """ Generate prediction matrix """
+    R_hat = np.dot(np.dot(U, sigma), V)
+    assert (np.shape(R) == np.shape(R_hat))
 
     # Get errors only from explicitly rated elements
+    R_mask = np.zeros(np.shape(R))
+    R_mask[R != 0.000000] = 1
     R_hat_mask = np.zeros(np.shape(R))
     np.multiply(R_hat, R_mask, out=R_hat_mask)
+
     # Compute error: MSE = (1/N) * (R - Rˆ), RMSE = MSEˆ(1/2)
+    assert (np.count_nonzero(R) == np.count_nonzero(R_hat_mask))
     diff = np.subtract(R, R_hat_mask)
     diff_square = np.square(diff)
-    mse = np.divide(diff_square.sum(), n_users*n_items)
+    #mse = np.divide(diff_square.sum(), n_users*n_items)
+    mse = np.divide(diff_square.sum(), np.count_nonzero(R_mask))
     rmse = np.sqrt(mse)
     print ("RMSE: %.6f" % (rmse))
 
-    """ Metrics for recommended items """
-    precisions, recalls = [], []
-    for i in xrange(n_users):
-        R_u = ratings_train.values[i, :]
-        R_u_k = R_u[:k]
-        R_u_k_non_zero = R_u_k[R_u_k > 0]
-        if len(R_u_k_non_zero) > 0:
-            # print ("User:%d mean rating:%.5f" % (i+1, np.mean(R_u_k_non_zero)))
-            R_u_relevant = np.where(R_u_k > rating_mean)[0]
-            R_u_hat = R_hat[i, :]
-            R_u_hat_sorted = np.argsort(-R_u_hat)
-            assert (R_u.shape == R_u_hat.shape)
-            precision = precision_at_k(R_u_relevant, R_u_hat_sorted[:k], k=k)
-            precisions.append(precision)
-            recall = recall_at_k(R_u_relevant, R_u_hat_sorted[:k], k=k)
-            recalls.append(recall)
-            #print ("user:%d precision:%.6f recall:%.6f" % (i + 1, precision, recall))
+    R_csr = sparse.csr_matrix(R)
+    precision = metrics2.precision_at_k(R_csr, R_hat, k=k)
+    recall = metrics2.recall_at_k(R_csr, R_hat, k=k)
+    print("Precision:%.3f%% Recall:%.3f%%" % (precision * 100, recall * 100))
 
-    print ("Precision:%.6f Recall:%.6f" % (np.mean(precisions), np.mean(recalls)))
+    print("\nStopping '%s'" % sys.argv[0])
 
 
 if __name__ == "__main__":

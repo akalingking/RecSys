@@ -1,14 +1,19 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" @brief  Recommendation algorithm using Matrix Factorization in TensorFlow
-    @author <ariel kalingking> akalingking@gmail.com """
+""" @brief  Recommendation algorithm using Matrix Factorization in TensorFlow """
+import sys
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from scipy import sparse
 from metrics import precision_at_k, recall_at_k
-
+import metrics2
+if sys.version_info[0] < 3:
+    range = xrange
 
 def main():
+    print("\nStarting '%s'" % sys.argv[0])
+
     session = tf.Session()
 
     normalized_on = True
@@ -32,41 +37,41 @@ def main():
     ratings = pd.pivot_table(df, values="rating", index="userid", columns="itemid")
     ratings.fillna(0, inplace=True)
     print("Raw ratings size", len(ratings))
-    ratings.astype(np.float64)
+    ratings = ratings.astype(np.float64)
 
     """ Construct training data """
-    train_factor = 0.7
-    train_size = int(n_users*train_factor)
-    ratings_train_ = ratings.loc[:train_size, :int(n_items*train_factor)]
-    user_train = ratings_train_.index.values
-    item_train = ratings_train_.columns.values
-    n_users = len(user_train)
-    n_items = len(item_train)
-    temp = ratings_train_.copy()
+    # train_factor = 0.7
+    # train_size = int(n_users*train_factor)
+    # ratings_train_ = ratings.loc[:train_size, :int(n_items*train_factor)]
+    users = ratings.index.values
+    items = ratings.columns.values
+    n_users = len(users)
+    n_items = len(items)
+    temp = ratings.copy()
     rating_mean = temp.replace(0, np.NaN).mean().mean()
     rating_mean = 3.5 if rating_mean > 3.5 else rating_mean
 
     print ("Training data:")
-    print ("Shape: %s" % str(ratings_train_.shape))
+    print ("Shape: %s" % str(ratings.shape))
     print ("n_users: %d" % n_users)
     print ("n_items: %d" % n_items)
     print ("rating mean: %.5f" % rating_mean)
 
-    user_indices = [x for x in xrange(n_users)]
-    item_indices = [x for x in xrange(n_items)]
+    user_indices = [x for x in range(n_users)]
+    item_indices = [x for x in range(n_items)]
 
-    print ("Max userid train: %d" % np.max(user_train))
-    print ("Max itemid train: %d" % np.max(item_train))
+    print ("Max userid train: %d" % np.max(users))
+    print ("Max itemid train: %d" % np.max(items))
     print ("user_indices size: %d" % len(user_indices))
     print ("item_indices size: %d " % len(item_indices))
 
     if normalized_on:
-        ratings_norm = np.zeros(ratings_train_.shape)
-        temp = ratings_train_.values
+        ratings_norm = np.zeros(ratings.shape)
+        temp = ratings.values
         np.subtract(temp, rating_mean, where=temp!=0, out=ratings_norm)
         ratings = ratings_norm
     else:
-        ratings = ratings_train_.values
+        ratings = ratings.values
 
     # Variables
     n_features = 10 # latent factors
@@ -112,34 +117,21 @@ def main():
     session.run(cost)
 
     """ Mean square error """
-    diff_op_train = tf.subtract(ratings[:train_size].astype(np.float32), R_mask)
+    diff_op_train = tf.subtract(ratings.astype(np.float32), R_mask)
     diff_op_train_squared = tf.square(diff_op_train)
     diff_op = tf.sqrt(tf.reduce_sum(diff_op_train_squared))
-    cost_train = tf.divide(diff_op, train_size*2.0)
+    cost_train = tf.divide(diff_op, ratings.shape[0])
     cost_train_result =  session.run(cost_train)
     print("Training MSE: %.5f" % cost_train_result)
 
-    """ Metrics of recommended items for nuser """
     k = 100
-    precisions, recalls = [], []
-    # R_hat = session.run(R_[0, :])
-    for i in xrange(n_users):
-        R_u = ratings_train_.values[i, :]
-        R_u_k = R_u[:k]
-        R_u_k_non_zero = R_u_k[R_u_k > 0]
-        if len(R_u_k_non_zero) > 0:
-            # print ("User:%d mean rating:%.5f" % (i+1, np.mean(R_u_k_non_zero)))
-            R_u_relevant = np.where(R_u_k > rating_mean)[0]
-            R_u_hat = R_[i, :]
-            R_u_hat_sorted = np.argsort(-R_u_hat)
-            assert (R_u.shape == R_u_hat.shape)
-            precision = precision_at_k(R_u_relevant, R_u_hat_sorted[:k], k=k)
-            precisions.append(precision)
-            recall = recall_at_k(R_u_relevant, R_u_hat_sorted[:k], k=k)
-            recalls.append(recall)
-            # print ("user:%d precision:%.6f recall:%.6f" % (i + 1, precision, recall))
+    R_hat = R_.eval(session=session)
+    ratings_csr = sparse.csr_matrix(ratings)
+    precision = metrics2.precision_at_k(ratings_csr, R_hat, k=100)
+    recall = metrics2.recall_at_k(ratings_csr, R_hat, k=100)
+    print("Precision:%.3f%% Recall:%.3f%%" % (precision * 100, recall * 100))
 
-    print ("Precision:%.3f Recall:%.6f" % (np.mean(precisions), np.mean(recalls)))
+    print("\nStopping '%s'" % sys.argv[0])
 
 
 if __name__ == "__main__":
