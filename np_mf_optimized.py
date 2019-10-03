@@ -6,7 +6,6 @@ import time, sys
 import numpy as np
 import pandas as pd
 import metrics
-import utils
 
 from scipy import sparse
 
@@ -83,7 +82,7 @@ def main():
     assert (ratings.shape == R_hat.shape)
     k = 100
     interactions = sparse.csr_matrix(ratings.values)
-    predicted_ranks = utils.rank_matrix(R_hat)
+    predicted_ranks = metrics.rank_matrix(R_hat)
 
     precision = metrics.precision_at_k(predicted_ranks, interactions, k=k)
     recall = metrics.recall_at_k(predicted_ranks, interactions, k=100)

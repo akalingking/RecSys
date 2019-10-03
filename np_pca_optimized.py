@@ -6,7 +6,6 @@ import sys
 import numpy as np
 import pandas as pd
 import metrics
-import utils
 from scipy import sparse
 
 def main():
@@ -109,7 +108,7 @@ def main():
 
     assert (R.shape == R_hat.shape)
     sparse_data = sparse.csr_matrix(R)
-    predicted_ranks = utils.rank_matrix(R_hat)
+    predicted_ranks = metrics.rank_matrix(R_hat)
     precision = metrics.precision_at_k(predicted_ranks, sparse_data, k=k)
     recall = metrics.recall_at_k(predicted_ranks, sparse_data, k=k)
     print("Precision:%.3f%% Recall:%.3f%%" % (precision*100, recall*100))

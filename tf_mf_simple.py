@@ -6,8 +6,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from scipy import sparse
-from metrics import precision_at_k, recall_at_k
-import metrics2
 import metrics
 
 def main():
@@ -129,8 +127,6 @@ def main():
     print (R_hat[:5,:5])
     interactions = sparse.csr_matrix(ratings)
     predicted_ranks = metrics.rank_matrix(R_hat)
-    # precision = metrics2.precision_at_k(ratings_csr.toarray(), R_hat, k=100)
-    # recall = metrics2.recall_at_k(ratings_csr.toarray(), R_hat, k=100)
     precision = metrics.precision_at_k(predicted_ranks, interactions, k=100)
     recall = metrics.recall_at_k(predicted_ranks, interactions, k=100)
     print("Precision:%.3f%% Recall:%.3f%%" % (precision * 100, recall * 100))

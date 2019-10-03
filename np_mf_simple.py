@@ -7,7 +7,6 @@ import numpy as np
 from scipy import sparse
 import pandas as pd
 import metrics
-import utils
 
 def main():
     print("\nStarting '%s'" % sys.argv[0])
@@ -62,7 +61,7 @@ def main():
 
     print ("Type: ", type(R_hat))
     print (R_hat[:5, :10])
-    predicted_ranks = utils.rank_matrix(R_hat)
+    predicted_ranks = metric.rank_matrix(R_hat)
     print (predicted_ranks.shape)
     print (predicted_ranks[:5, :10])
 
