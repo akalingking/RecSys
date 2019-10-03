@@ -10,7 +10,7 @@ def main():
     suite = unittest.TestSuite()
 
     # suite.addTest(TestPipeline("pipeline_test"))
-    # suite.addTest(TestMetric("metric_test"))
+    suite.addTest(TestMetric("metric_test"))
     suite.addTest(TestDeepFM("deepfm_test"))
 
     runner = unittest.TextTestRunner()

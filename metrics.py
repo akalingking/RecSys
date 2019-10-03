@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """ @brief  Precision and Recall
     @ref    https://en.wikipedia.org/wiki/Precision_and_recall
-            Modified from https://github.com/lyst/lightfm
+            Modified from https://github.com/lyst/lightfm and https://github.com/jfkirk/tensorrec
     @author <ariel kalingking> akalingking@gmail.com """
 import numpy as np
 import pandas as pd
