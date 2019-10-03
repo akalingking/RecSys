@@ -5,11 +5,9 @@
 import sys
 import numpy as np
 import pandas as pd
-import metrics2
+import metrics
 import scipy.sparse.linalg as linalg
 from scipy import sparse
-if sys.version_info[0] < 3:
-    range = xrange
 
 def main():
     print("\nStarting '%s'" % sys.argv[0])
@@ -80,9 +78,11 @@ def main():
     rmse = np.sqrt(mse)
     print ("RMSE: %.6f" % (rmse))
 
-    R_csr = sparse.csr_matrix(R)
-    precision = metrics2.precision_at_k(R_csr, R_hat, k=k)
-    recall = metrics2.recall_at_k(R_csr, R_hat, k=k)
+    assert (R.shape == R_hat.shape)
+    interactions = sparse.csr_matrix(R)
+    predicted_ranks = metrics.rank_matrix(R_hat)
+    precision = metrics.precision_at_k(predicted_ranks, interactions, k=k)
+    recall = metrics.recall_at_k(predicted_ranks, interactions, k=k)
     print("Precision:%.3f%% Recall:%.3f%%" % (precision * 100, recall * 100))
 
     print("\nStopping '%s'" % sys.argv[0])

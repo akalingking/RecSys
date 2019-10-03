@@ -7,10 +7,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from scipy import sparse
-from metrics import precision_at_k, recall_at_k
-import metrics2
-if sys.version_info[0] < 3:
-    range = xrange
+import metrics
 
 def main():
     session = tf.Session()
@@ -128,9 +125,11 @@ def main():
             print("Train iter: %d MSE: %.5f loss: %.5f" % (i, session.run(rmse), session.run(cost)))
 
     R_hat = R_.eval(session=session)
-    ratings_csr = sparse.csr_matrix(ratings)
-    precision = metrics2.precision_at_k(ratings_csr, R_hat, k=k)
-    recall = metrics2.recall_at_k(ratings_csr, R_hat, k=k)
+    predicted_ranks = metrics.rank_matrix(R_hat)
+    interactions = sparse.csr_matrix(ratings)
+    precision = metrics.precision_at_k(predicted_ranks, interactions, k=k)
+    recall = metrics.recall_at_k(predicted_ranks, interactions, k=k)
+
     print("Precision:%.3f%% Recall:%.3f%%" % (precision * 100, recall * 100))
 
 

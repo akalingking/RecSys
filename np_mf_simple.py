@@ -7,9 +7,7 @@ import numpy as np
 from scipy import sparse
 import pandas as pd
 import metrics
-import metrics2
-if sys.version_info[0] < 3:
-    range = xrange
+import utils
 
 def main():
     print("\nStarting '%s'" % sys.argv[0])
@@ -62,10 +60,19 @@ def main():
 
     print ("RMSE: %.5f" % (rmse))
 
+    print ("Type: ", type(R_hat))
+    print (R_hat[:5, :10])
+    predicted_ranks = utils.rank_matrix(R_hat)
+    print (predicted_ranks.shape)
+    print (predicted_ranks[:5, :10])
+
+
     ratings_csr = sparse.csr_matrix(ratings.values)
-    precision = metrics2.precision_at_k(ratings_csr, R_hat, k=100)
-    recall = metrics2.recall_at_k(ratings_csr, R_hat, k=100)
-    print ("Precision {0:.3f}% Recall={1:.3f}%".format(precision*100, recall*100))
+    precision = metrics.precision_at_k(predicted_ranks, ratings_csr, k=100)
+    recall = metrics.recall_at_k(predicted_ranks, ratings_csr, k=100)
+
+    print ("Precision {0:.5f}% Recall={1:.5f}%".format(precision*100, recall*100))
+
 
     print("\nStopping '%s'" % sys.argv[0])
 

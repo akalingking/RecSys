@@ -5,9 +5,8 @@
 import time, sys
 import numpy as np
 import pandas as pd
-import metrics2
-if sys.version_info[0] < 3:
-    range = xrange
+import metrics
+import utils
 
 from scipy import sparse
 
@@ -81,9 +80,14 @@ def main():
     print ("Optimization time: %.6f seconds" % (time.time()- start_t))
     
     """ Metrics of recommended items for each user """
+    assert (ratings.shape == R_hat.shape)
     k = 100
-    precision = metrics2.precision_at_k(sparse.csr_matrix(ratings.values), R_hat, k=100)
-    recall = metrics2.recall_at_k(sparse.csr_matrix(ratings.values), R_hat, k=100)
+    interactions = sparse.csr_matrix(ratings.values)
+    predicted_ranks = utils.rank_matrix(R_hat)
+
+    precision = metrics.precision_at_k(predicted_ranks, interactions, k=k)
+    recall = metrics.recall_at_k(predicted_ranks, interactions, k=100)
+
     print("Precision:%.3f%% Recall:%.3f%%" % (precision*100, recall*100))
 
     print("\nStopping '%s'" % sys.argv[0])

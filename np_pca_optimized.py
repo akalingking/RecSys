@@ -5,11 +5,9 @@
 import sys
 import numpy as np
 import pandas as pd
-import metrics2
+import metrics
+import utils
 from scipy import sparse
-
-if sys.version_info[0] < 3:
-    range = xrange
 
 def main():
     print ("\nStarting '%s'" % sys.argv[0])
@@ -109,9 +107,11 @@ def main():
         rmse = np.sqrt(mse)
         print ("RMSE: %.5f" % rmse)
 
+    assert (R.shape == R_hat.shape)
     sparse_data = sparse.csr_matrix(R)
-    precision = metrics2.precision_at_k(sparse_data, R_hat, k=k)
-    recall = metrics2.recall_at_k(sparse_data, R_hat, k=k)
+    predicted_ranks = utils.rank_matrix(R_hat)
+    precision = metrics.precision_at_k(predicted_ranks, sparse_data, k=k)
+    recall = metrics.recall_at_k(predicted_ranks, sparse_data, k=k)
     print("Precision:%.3f%% Recall:%.3f%%" % (precision*100, recall*100))
 
     print ("\nStoppping '%s" % sys.argv[0])
